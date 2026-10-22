@@ -27,7 +27,7 @@ QR zachowuje własne czarne moduły, białe tło i pełny margines.
 ## Szybki podgląd
 
 ```sh
-cd custom-tools/wgtui
+cd tools/wgtui
 cargo run --locked -- --demo
 ```
 
@@ -36,6 +36,54 @@ i zapisu konfiguracji. Dane i klucze demonstracyjne są fikcyjne; profil
 DEMO nie służy do rzeczywistego połączenia. Do działania potrzebny jest
 terminal minimum 80×24; szerokość od 110 znaków daje panel szczegółów.
 QR wymaga większego okna zależnie od długości profilu.
+
+## Instalacja bezpośrednio z GitHuba
+
+Na Debianie, Ubuntu lub Proxmoxie, jako root (lub z użyciem `sudo`):
+
+```sh
+# Jeśli polecenia git jeszcze nie ma:
+sudo apt-get update
+sudo apt-get install -y git
+
+git clone https://github.com/szymongalka/Proxmox-Infrastructure.git
+cd Proxmox-Infrastructure/tools/wgtui
+sudo bash install.sh
+sudo wgtui
+```
+
+W sesji root pomiń `sudo`. Instalator uruchom z całego sklonowanego
+repozytorium — sam plik `install.sh` nie zawiera kodu aplikacji.
+
+Jeśli nie ma lokalnej paczki wydania, instalator automatycznie kompiluje
+źródła z wersjami zależności zapisanymi w `Cargo.lock`. Doinstalowuje
+`build-essential`, `ca-certificates`, `curl`, `wireguard-tools` i `iproute2`,
+jeżeli ich brakuje. Korzysta z istniejącego Rust spełniającego minimum z
+`Cargo.toml`; w przeciwnym razie pobiera Rust stable do prywatnego katalogu
+tymczasowego przez oficjalny serwer `static.rust-lang.org`, sprawdzając
+sumę SHA-256 instalatora rustup. Metoda pobrania jest opisana w
+[oficjalnej dokumentacji rustup](https://rust-lang.github.io/rustup/installation/other.html).
+Tymczasowe środowisko kompilacji jest usuwane po zakończeniu.
+
+Pierwsza kompilacja wymaga internetu, kilku minut i kilku GiB wolnego
+miejsca w `/var/tmp`. Domyślnie używa dwóch zadań. Możesz ograniczyć obciążenie:
+
+```sh
+sudo bash install.sh --from-source --jobs 1
+```
+
+Aktualizacja istniejącej instalacji:
+
+```sh
+git pull --ff-only
+sudo bash install.sh --from-source
+```
+
+Opcja `--from-source` wymusza aktualną kompilację, także gdy w `dist/`
+pozostała wcześniejsza paczka. Ustawienia, szablony i dane interfejsów
+pozostają zachowane. `--skip-packages` wyłącza apt i pobieranie Rust;
+wymaga gotowych zależności oraz kompilatora. Cargo nadal może pobierać
+biblioteki z rejestru. Instalator nie uruchamia aplikacji ani tuneli.
 
 ## Instalacja na Linuksie
 
@@ -66,8 +114,9 @@ sudo ./install.sh --skip-packages
 
 Ta opcja sprawdza obecność zależności i nie uruchamia `apt-get`.
 Gdy oba pakiety są już zainstalowane, również zwykła instalacja pomija apt.
-`./install.sh --help` pokazuje pomoc. Uruchomiony z katalogu źródeł skrypt
-korzysta z gotowych plików w `dist/`; nie kompiluje ani nie pobiera binarek.
+`./install.sh --help` pokazuje pomoc. Instalator najpierw szuka gotowej
+lokalnej paczki w `dist/`. Jeśli jej nie ma, kompiluje aplikację ze źródeł.
+`--from-source` pomija poszukiwanie paczki.
 
 Gotowe archiwa `dist/wgtui-linux-amd64.tar.gz` i
 `dist/wgtui-linux-arm64.tar.gz` zawierają statyczną binarkę, szablony,
