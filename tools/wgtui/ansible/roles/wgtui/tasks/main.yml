@@ -1,0 +1,81 @@
+---
+- name: Sprawdź obsługiwany system i architekturę
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['system'] == 'Linux'
+      - ansible_facts['os_family'] == 'Debian'
+      - ansible_facts['service_mgr'] == 'systemd'
+      - ansible_facts['architecture'] in ['x86_64', 'aarch64']
+    fail_msg: wgtui wymaga Linuksa Debian/Ubuntu/Proxmox z systemd, x86_64 lub ARM64.
+
+- name: Zainstaluj narzędzia WireGuarda
+  ansible.builtin.apt:
+    name:
+      - wireguard-tools
+      - iproute2
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Przygotuj katalog aplikacji i binarki
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ wgtui_install_dir }}"
+    - "{{ wgtui_install_dir }}/bin"
+
+- name: Przygotuj prywatne katalogi ustawień
+  ansible.builtin.file:
+    path: "{{ wgtui_install_dir }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  loop:
+    - templates
+    - interfaces
+
+- name: Zainstaluj binarkę dla architektury hosta
+  ansible.builtin.copy:
+    src: "{{ wgtui_binary_src }}"
+    dest: "{{ wgtui_install_dir }}/bin/wgtui"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Dodaj ustawienia początkowe bez nadpisywania zmian użytkownika
+  ansible.builtin.copy:
+    src: "{{ role_path }}/../../../templates/settings.toml"
+    dest: "{{ wgtui_install_dir }}/settings.toml"
+    owner: root
+    group: root
+    mode: '0600'
+    force: false
+
+- name: Dodaj szablony bez nadpisywania zmian użytkownika
+  ansible.builtin.copy:
+    src: "{{ role_path }}/../../../templates/{{ item }}"
+    dest: "{{ wgtui_install_dir }}/templates/{{ item }}"
+    owner: root
+    group: root
+    mode: '0600'
+    force: false
+  loop:
+    - client.conf.tpl
+    - profile.toml
+
+- name: Udostępnij polecenie wgtui w PATH
+  ansible.builtin.file:
+    src: "{{ wgtui_install_dir }}/bin/wgtui"
+    dest: /usr/local/bin/wgtui
+    state: link
+    # W check mode wcześniejsza operacja copy nie tworzy jeszcze binarki.
+    force: "{{ ansible_check_mode }}"
+    owner: root
+    group: root
+
+# Celowo bez szablonowania /etc/wireguard, sysctl, NAT i reguł zapory.

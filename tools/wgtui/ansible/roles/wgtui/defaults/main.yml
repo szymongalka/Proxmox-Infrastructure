@@ -1,0 +1,3 @@
+---
+wgtui_install_dir: /opt/custom-tools/wgtui
+wgtui_binary_src: "{{ playbook_dir }}/../dist/wgtui-linux-{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}/bin/wgtui"

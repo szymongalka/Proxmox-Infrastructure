@@ -1,0 +1,32 @@
+[package]
+name = "wgtui"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "Klawiaturowy menedżer WireGuarda dla Linuksa"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+clap = { version = "4", features = ["derive"] }
+crossterm = "0.29"
+fs2 = "0.4"
+ipnet = { version = "2", features = ["serde"] }
+libc = "0.2"
+qrcode = { version = "0.14", default-features = false }
+ratatui = "0.30.2"
+serde = { version = "1", features = ["derive"] }
+tempfile = "3"
+toml = "0.9"
+zeroize = { version = "1", features = ["derive"] }
+unicode-width = "0.2"
+
+[dev-dependencies]
+rqrr = "0.10"
+image = { version = "0.25", default-features = false }
+
+[profile.release]
+lto = "thin"
+strip = true
+codegen-units = 1

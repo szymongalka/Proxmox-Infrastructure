@@ -1,0 +1,5 @@
+# Domyślne ustawienia nowych klientów. Nie wpisuj tu kluczy prywatnych.
+endpoint = ""
+dns = []
+routes = []
+keepalive = 25

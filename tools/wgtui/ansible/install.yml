@@ -1,0 +1,7 @@
+---
+- name: Zainstaluj wgtui bez zmiany tuneli i zapory
+  hosts: wgtui_hosts
+  become: true
+  gather_facts: true
+  roles:
+    - wgtui
